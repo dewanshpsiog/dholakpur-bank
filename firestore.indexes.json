@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "accounts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "accountNumber", "order": "ASCENDING" },
+        { "fieldPath": "bankId", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
