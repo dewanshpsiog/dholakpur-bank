@@ -1,0 +1,16 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /customer_documents/{uid}/{fileName} {
+      allow create: if request.auth != null &&
+        request.auth.uid == uid &&
+        request.resource.size <= 5 * 1024 * 1024 &&
+        request.resource.contentType.matches('application/pdf|image/jpeg|image/png');
+      allow read: if request.auth != null &&
+        (request.auth.uid == uid ||
+         request.auth.token.bankRole == 'BANK_ADMIN' ||
+         request.auth.token.role == 'ADMIN');
+      allow update, delete: if false;
+    }
+  }
+}

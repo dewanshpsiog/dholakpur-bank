@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function bankAdmin() {
+      return signedIn() &&
+        (request.auth.token.bankRole == 'BANK_ADMIN' ||
+         request.auth.token.role == 'ADMIN');
+    }
+
+    match /customerApplications/{uid} {
+      allow create: if signedIn() &&
+        request.auth.uid == uid &&
+        request.resource.data.keys().hasOnly([
+          'uid', 'role', 'status', 'profile', 'document',
+          'openingDepositMinor', 'createdAt'
+        ]) &&
+        request.resource.data.uid == uid &&
+        request.resource.data.role == 'CUSTOMER' &&
+        request.resource.data.status == 'PENDING' &&
+        request.resource.data.openingDepositMinor == 100000 &&
+        request.resource.data.profile.keys().hasOnly(['name', 'email', 'phone', 'address']) &&
+        request.resource.data.profile.name is string &&
+        request.resource.data.profile.email is string &&
+        request.resource.data.profile.phone is string &&
+        request.resource.data.profile.address is string &&
+        request.resource.data.document.objectName is string &&
+        request.resource.data.document.objectName.matches('customer_documents/' + uid + '/.*') &&
+        request.resource.data.document.size <= 5 * 1024 * 1024;
+      allow get: if signedIn() && (request.auth.uid == uid || bankAdmin());
+      allow list: if bankAdmin();
+      allow update, delete: if false;
+    }
+
+    match /accounts/{accountId} {
+      allow read: if signedIn() &&
+        (resource.data.ownerUid == request.auth.uid || bankAdmin());
+      allow write: if false;
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if signedIn() &&
+        (resource.data.ownerUid == request.auth.uid || bankAdmin());
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /customer_documents/{uid}/{fileName} {
+      allow create: if request.auth != null &&
+        request.auth.uid == uid &&
+        request.resource.size <= 5 * 1024 * 1024 &&
+        request.resource.contentType.matches('application/pdf|image/jpeg|image/png');
+      allow read: if request.auth != null &&
+        (request.auth.uid == uid ||
+         request.auth.token.bankRole == 'BANK_ADMIN' ||
+         request.auth.token.role == 'ADMIN');
+      allow update, delete: if false;
+    }
+  }
+}
