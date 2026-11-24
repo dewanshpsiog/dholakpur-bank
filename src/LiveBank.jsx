@@ -142,10 +142,10 @@ function Sidebar({ page, setPage, logout, bank, role }) {
   const items = role === 'ADMIN' ? adminItems : customerItems;
   return <aside className="sidebar">
     <Logo />
-    <nav>{items.map(([id, Icon, label]) => <button key={id} className={page === id ? 'active' : ''} onClick={() => setPage(id)}>
+    <nav>{items.map(([id, Icon, label]) => <button key={id} aria-label={label} className={page === id ? 'active' : ''} onClick={() => setPage(id)}>
       <Icon size={20} /><span>{label}</span>
     </button>)}</nav>
-    <button className="logout" onClick={logout}><LogOut size={18} /> Sign out</button>
+    <button className="logout" aria-label="Sign out" onClick={logout}><LogOut size={18} /> Sign out</button>
   </aside>;
 }
 

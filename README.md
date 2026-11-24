@@ -9,6 +9,19 @@ npm ci
 npm run dev
 ```
 
+## Verify before deployment
+
+Run the local checks from the project root:
+
+```bash
+npm test
+npm run build
+cd functions
+npm run lint
+```
+
+These checks do not contact Firebase or deploy services. For GitHub Pages builds, add `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, and `VITE_FIREBASE_STORAGE_BUCKET` as repository Actions variables; the Pages workflow passes them to Vite. Customer and admin operations require the configured Firebase project and deployed Functions; inter-bank transfers additionally depend on the separate Central Bank Worker.
+
 ## Independent bank authentication and data
 
 Customer registration, sign-in, password reset, and password change use this bank’s own Firebase Authentication project. Registration writes the customer application to this bank’s Firestore and uploads the submitted KYC document to this bank’s Firebase Storage. Customer login does not call the SharedBank/Central Bank service.
